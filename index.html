@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adarsh AI Chat</title>
+    <!-- Use Tailwind CSS for a responsive and modern design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the application */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+        }
+
+        /* Light Theme Variables */
+        :root {
+            --bg-color: #c9cacc; /* gray-100 */
+            --text-color: #1F2937; /* gray-800 */
+            --header-bg: #ffffffb9;
+            --chat-bg: #2f8f94f6;
+            --user-msg-bg: #3B82F6; /* blue-500 */
+            --user-msg-text: #ccbbbb;
+            --ai-msg-bg: #E5E7EB; /* gray-200 */
+            --ai-msg-text: #1F2937; /* gray-800 */
+            --input-bg: #e4e0e0;
+            --input-text: #1F2937;
+            --button-bg: #3B82F6;
+            --button-text: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Theme Variables */
+        .dark {
+            --bg-color: #111827; /* gray-900 */
+            --text-color: #F9FAFB; /* gray-50 */
+            --header-bg: #1F2937; /* gray-800 */
+            --chat-bg: #1F2937; /* gray-800 */
+            --user-msg-bg: #2563EB; /* blue-600 */
+            --user-msg-text: #F9FAFB;
+            --ai-msg-bg: #374151; /* gray-700 */
+            --ai-msg-text: #F9FAFB;
+            --input-bg: #374151; /* gray-700 */
+            --input-text: #F9FAFB;
+            --button-bg: #2563EB;
+            --button-text: #F9FAFB;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        /* General Styling */
+        .theme-transition {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        #chat-container, #admin-login-container, #admin-dashboard-container {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .header, .chat-window, .input-area, .admin-form, .admin-header, .chat-log-container {
+            background-color: var(--header-bg);
+            box-shadow: 0 4px 6px -1px var(--shadow-color);
+        }
+        
+        .chat-window {
+             background-color: var(--chat-bg);
+        }
+
+        .user-message {
+            background-color: var(--user-msg-bg);
+            color: var(--user-msg-text);
+        }
+
+        .ai-message {
+            background-color: var(--ai-msg-bg);
+            color: var(--ai-msg-text);
+        }
+        
+        #message-input {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+        
+        #send-button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+        }
+        
+        /* Loading spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--user-msg-bg);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body class="theme-transition">
+
+    <!-- Chat Interface -->
+    <div id="chat-container" class="flex flex-col h-screen p-2 sm:p-4 theme-transition">
+        <!-- Header -->
+        <header class="header theme-transition flex justify-between items-center p-3 sm:p-4 rounded-xl mb-4">
+            <h1 class="text-lg sm:text-2xl font-bold">Adarsh AI Chat</h1>
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                 <button id="show-admin-login" class="text-sm text-gray-500 dark:text-gray-400 hover:underline flex-shrink-0">Admin</button>
+                 <span id="user-id-display" class="text-xs text-gray-400 dark:text-gray-500 hidden"></span>
+                <!-- Theme Toggle -->
+                <div class="flex items-center flex-shrink-0">
+                    <label for="theme-toggle" class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="theme-toggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 peer-checked:bg-blue-600"></div>
+                        <span class="absolute top-[2px] left-[2px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 border rounded-full h-5 w-5 transition-all peer-checked:translate-x-full flex items-center justify-center">
+                            <!-- Moon Icon (shown in light mode) -->
+                            <svg class="w-3 h-3 text-gray-600 peer-checked:hidden" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                            </svg>
+                            <!-- Sun Icon (shown in dark mode) -->
+                            <svg class="w-3 h-3 text-yellow-400 hidden peer-checked:block" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                 <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                            </svg>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Messages -->
+        <main id="chat-window" class="chat-window theme-transition flex-1 p-4 sm:p-6 rounded-xl overflow-y-auto">
+            <div id="message-list" class="space-y-4">
+                <!-- AI Welcome Message -->
+                <div class="flex justify-start">
+                    <div class="ai-message theme-transition p-3 rounded-lg max-w-[80%] sm:max-w-md">
+                        <p class="text-sm">Hello! I'm Adarsh AI. How can I assist you today?</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Message Input -->
+        <footer class="mt-4">
+            <div class="input-area theme-transition flex items-center p-2 sm:p-4 rounded-xl">
+                <input type="text" id="message-input" class="theme-transition w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type a message...">
+                <button id="send-button" class="theme-transition ml-2 sm:ml-4 px-4 sm:px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0">
+                    Send
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Admin Login Panel -->
+    <div id="admin-login-container" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 theme-transition">
+        <div class="admin-form theme-transition w-full max-w-sm p-6 sm:p-8 rounded-2xl space-y-6">
+            <div class="flex justify-between items-center">
+                 <h2 class="text-xl sm:text-2xl font-bold text-center">Admin Login</h2>
+                 <button id="close-login" class="text-2xl font-bold text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <form id="login-form">
+                <div>
+                    <label for="username" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="username" class="w-full p-3 rounded-lg theme-transition" style="background-color: var(--input-bg);" required>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="password" class="w-full p-3 rounded-lg theme-transition" style="background-color: var(--input-bg);" required>
+                </div>
+                <p id="login-error" class="text-red-500 text-sm hidden">Invalid credentials. Please try again.</p>
+                <button type="submit" class="w-full p-3 rounded-lg font-semibold theme-transition" style="background-color: var(--button-bg);">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard-container" class="hidden flex-col h-screen p-2 sm:p-4 theme-transition">
+        <header class="admin-header theme-transition flex justify-between items-center p-3 sm:p-4 rounded-xl mb-4">
+            <h1 class="text-lg sm:text-2xl font-bold">Admin Dashboard</h1>
+            <button id="logout-button" class="px-4 py-2 rounded-lg font-semibold theme-transition flex-shrink-0" style="background-color: var(--button-bg);">Logout</button>
+        </header>
+        <main id="chat-log-container" class="chat-log-container theme-transition flex-1 p-4 sm:p-6 rounded-xl overflow-y-auto">
+            <div id="conversation-list" class="space-y-6">
+                <!-- Conversations will be loaded here -->
+                 <p class="text-gray-400">No conversations yet.</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // --- Firebase Configuration ---
+        // Use global variables provided by the Canvas environment
+        const firebaseConfig = {
+        apiKey: "AIzaSyBb1ueVDMK3t9iPaToo84PM3Laklo2NWX8",
+        authDomain: "sample-firebase-ai-app-4898b.firebaseapp.com",
+        projectId: "sample-firebase-ai-app-4898b",
+        storageBucket: "sample-firebase-ai-app-4898b.appspot.com",
+        messagingSenderId: "645665977912",
+        appId: "1:645665977912:web:6c12f09737f506548bd8cd"
+        };
+
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Initialize Firebase
+        let app, db, auth;
+        let userId;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            console.log("Firebase Initialized Successfully");
+            
+            // Handle authentication state changes
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    console.log("User signed in with UID:", userId);
+                    // Commented out the lines that display the user ID
+                    // const userIdDisplay = document.getElementById('user-id-display');
+                    // userIdDisplay.textContent = `UID: ${userId}`;
+                    // userIdDisplay.classList.remove('hidden');
+                } else {
+                    console.log("User signed out or not authenticated. Signing in anonymously...");
+                    try {
+                        // If no user is authenticated, sign in anonymously
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Anonymous sign-in failed:", error);
+                        document.getElementById('message-list').innerHTML = `<div class="text-red-500 p-4">Authentication failed. Please check the console.</div>`;
+                    }
+                }
+            });
+
+        } catch (e) {
+            console.error("Firebase initialization or authentication failed. Please check your config and network connection.", e);
+            document.getElementById('message-list').innerHTML = `<div class="text-red-500 p-4">Could not connect to the chat service. Please check the Firebase configuration.</div>`;
+        }
+
+        // --- DOM Element References ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const messageList = document.getElementById('message-list');
+        const chatWindow = document.getElementById('chat-window');
+
+        const showAdminLoginBtn = document.getElementById('show-admin-login');
+        const adminLoginContainer = document.getElementById('admin-login-container');
+        const closeLoginBtn = document.getElementById('close-login');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+
+        const chatContainer = document.getElementById('chat-container');
+        const adminDashboardContainer = document.getElementById('admin-dashboard-container');
+        const logoutButton = document.getElementById('logout-button');
+        const conversationList = document.getElementById('conversation-list');
+        
+        // Use a session ID stored in local storage to persist the conversation
+        // over page refreshes for the same user.
+        let sessionId = localStorage.getItem('chat-sessionId');
+        if (!sessionId) {
+            sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem('chat-sessionId', sessionId);
+        }
+
+        // --- Theme Toggle Functionality ---
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // --- Chat Functionality ---
+        const addMessageToUI = (sender, message) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', sender === 'user' ? 'justify-end' : 'justify-start');
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add(sender === 'user' ? 'user-message' : 'ai-message', 'theme-transition', 'p-3', 'rounded-lg', 'max-w-[80%]', 'sm:max-w-md');
+            messageBubble.innerHTML = `<p class="text-sm break-words">${message}</p>`;
+            
+            messageDiv.appendChild(messageBubble);
+            messageList.appendChild(messageDiv);
+            
+            // Scroll to the bottom
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        const addLoadingIndicator = () => {
+             const loadingDiv = document.createElement('div');
+             loadingDiv.id = 'loading-indicator';
+             loadingDiv.classList.add('flex', 'justify-start');
+             
+             const loadingBubble = document.createElement('div');
+             loadingBubble.classList.add('ai-message', 'theme-transition', 'p-3', 'rounded-lg', 'max-w-[80%]', 'sm:max-w-md');
+             
+             const loader = document.createElement('div');
+             loader.className = 'loader';
+
+             loadingBubble.appendChild(loader);
+             loadingDiv.appendChild(loadingBubble);
+             messageList.appendChild(loadingDiv);
+             chatWindow.scrollTop = chatWindow.scrollHeight;
+        };
+
+        const removeLoadingIndicator = () => {
+             const loadingIndicator = document.getElementById('loading-indicator');
+             if (loadingIndicator) {
+                 loadingIndicator.remove();
+             }
+        };
+
+        const saveMessage = async (sender, message) => {
+            if (!db || !userId) return; // Don't try to save if firebase isn't initialized or user not authenticated
+            try {
+                // IMPORTANT: The security rules for this app require a `userId` field to match the authenticated user.
+                // For a more public chat, you would need to adjust these rules.
+                await addDoc(collection(db, "artifacts", appId, "public", "data", "conversations"), {
+                    sessionId: sessionId,
+                    sender: sender,
+                    message: message,
+                    timestamp: new Date(),
+                    userId: userId,
+                });
+            } catch (error) {
+                console.error("Error writing message to Firestore: ", error);
+            }
+        };
+
+        const getGeminiResponse = async (prompt) => {
+            try {
+                const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = "AIzaSyDKBNa3-KlTFNqBOzrsoco8XdSe4q0KxNc";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                // Check if the response is successful and has content before trying to parse
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Gemini API call failed with status:", response.status, errorText);
+                    return "An error occurred with the AI service. Please try again later.";
+                }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    // This handles cases where the API call was successful, but the response was unexpected
+                    console.error("Gemini API response structure was unexpected:", result);
+                    return "Sorry, I couldn't generate a response. Please try again.";
+                }
+            } catch (error) {
+                // This will catch network errors or JSON parsing errors
+                console.error("Error calling Gemini API:", error);
+                return "An error occurred while communicating with the AI. Please try again.";
+            }
+        };
+
+        const handleSendMessage = async () => {
+            const message = messageInput.value.trim();
+            if (message && userId) {
+                // Display user message immediately
+                addMessageToUI('user', message);
+                await saveMessage('user', message);
+                messageInput.value = '';
+                
+                // Add a loading indicator for the AI response
+                addLoadingIndicator();
+                
+                // Get AI response
+                const aiResponse = await getGeminiResponse(message);
+                
+                // Remove loading indicator and display AI response
+                removeLoadingIndicator();
+                addMessageToUI('ai', aiResponse);
+                await saveMessage('ai', aiResponse);
+            }
+        };
+
+        sendButton.addEventListener('click', handleSendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+
+        // --- Admin Panel Functionality ---
+        showAdminLoginBtn.addEventListener('click', () => {
+            adminLoginContainer.classList.remove('hidden');
+        });
+
+        closeLoginBtn.addEventListener('click', () => {
+            adminLoginContainer.classList.add('hidden');
+        });
+        
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = e.target.username.value;
+            const password = e.target.password.value;
+
+            // WARNING: This is a placeholder for demonstration purposes.
+            // In a real application, you should use a secure authentication method
+            // like Firebase Authentication with email/password or a service account.
+            if (username === 'adarsh12' && password === 'adarsh123') {
+                loginError.classList.add('hidden');
+                
+                // For demonstration, we'll just switch the view.
+                // A real app would authenticate a user and then check for admin privileges.
+                adminLoginContainer.classList.add('hidden');
+                chatContainer.classList.add('hidden');
+                adminDashboardContainer.classList.remove('hidden');
+                adminDashboardContainer.classList.add('flex');
+                loadConversations();
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        logoutButton.addEventListener('click', () => {
+            if (unsubscribe) {
+                unsubscribe(); // Stop listening to Firestore updates
+            }
+            adminDashboardContainer.classList.add('hidden');
+            adminDashboardContainer.classList.remove('flex');
+            chatContainer.classList.remove('hidden');
+            loginForm.reset();
+        });
+
+        // --- Admin Dashboard Data Loading ---
+        let unsubscribe; // To stop listening for updates when logged out
+
+        const loadConversations = () => {
+            if (!db) {
+                conversationList.innerHTML = `<p class="text-red-500">Cannot connect to database.</p>`;
+                return;
+            };
+
+            // This query fetches all conversations for a public shared space.
+            const q = query(collection(db, "artifacts", appId, "public", "data", "conversations"));
+            
+            unsubscribe = onSnapshot(q, (querySnapshot) => {
+                const conversationsBySession = {};
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (!conversationsBySession[data.sessionId]) {
+                        conversationsBySession[data.sessionId] = [];
+                    }
+                    conversationsBySession[data.sessionId].push(data);
+                });
+
+                // Sort messages within each session by timestamp manually
+                for (const sessionId in conversationsBySession) {
+                    conversationsBySession[sessionId].sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
+                }
+
+                conversationList.innerHTML = ''; // Clear previous logs
+                
+                if (Object.keys(conversationsBySession).length === 0) {
+                     conversationList.innerHTML = `<p class="text-gray-400">No conversations yet.</p>`;
+                     return;
+                }
+
+                for (const sessionId in conversationsBySession) {
+                    const messages = conversationsBySession[sessionId];
+                    
+                    const sessionContainer = document.createElement('div');
+                    sessionContainer.className = 'p-4 rounded-lg border border-gray-700 space-y-2';
+                    
+                    const sessionHeader = document.createElement('h3');
+                    sessionHeader.className = 'font-semibold text-base sm:text-lg border-b border-gray-600 pb-2 mb-2';
+                    const sessionDate = messages[0]?.timestamp?.toDate()?.toLocaleString() || "Date Unavailable";
+                    sessionHeader.textContent = `Session: ${sessionId.substring(0,15)}... (${sessionDate}) - User: ${messages[0]?.userId || 'N/A'}`;
+                    
+                    sessionContainer.appendChild(sessionHeader);
+
+                    messages.forEach(msg => {
+                        const msgElement = document.createElement('p');
+                        const isUser = msg.sender === 'user';
+                        msgElement.className = `text-sm p-2 rounded break-words ${isUser ? 'user-message' : 'ai-message'} ${isUser ? 'text-white' : 'text-gray-900 dark:text-white'}`;
+                        msgElement.innerHTML = `<span class="font-bold capitalize">${msg.sender}:</span> ${msg.message}`;
+                        sessionContainer.appendChild(msgElement);
+                    });
+                    
+                    conversationList.appendChild(sessionContainer);
+                }
+            }, (error) => {
+                console.error("Error fetching conversations: ", error);
+                conversationList.innerHTML = `<p class="text-red-500">Error fetching conversations.</p>`;
+            });
+        };
+    </script>
+</body>
+</html>
